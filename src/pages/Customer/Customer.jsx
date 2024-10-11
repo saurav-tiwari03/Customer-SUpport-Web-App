@@ -1,28 +1,36 @@
-import {  useParams } from "react-router-dom"; // Import useParams to get the chat ID
+import { useNavigate, useParams } from "react-router-dom";
 import History from "@/components/Customer/History";
-import NewRequest from "@/components/Customer/NewRequest";
-import Chat from "@/components/Customer/Chat"; // Import the Chat component
+import {NewRequest} from "@/components/Customer/NewRequest";
+import {Chat} from "@/components/Customer/Chat"; 
+import { useEffect, useState } from "react";
 
-export default function Customer() {
-  const { id } = useParams(); 
+export function Customer() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  const {id} = useParams();
+  console.log('Id ==> '+id)
 
-  const show = id;
+  useEffect(() => {
+    const storedUserDataString = localStorage.getItem('UserData');  
+    const storedUserData = JSON.parse(storedUserDataString);
+    setUserData(storedUserData);
+
+    if (!storedUserData || storedUserData.role !== 'customer') {
+      navigate('/auth/customer/login');
+    }
+  }, []);
+
+  if (!userData) {
+    return null; 
+  }
 
   return (
-    <div>
-      <div className="flex w-full">
-        <div className="m-1 h-full">
-          <History show={show} />
-        </div>
-        <div className="flex items-center justify-center w-[70vw] h-[70vh]">
-          {id ? (
-            <div className="mt-14 flex items-center justify-center w-[70vw] h-[70vh]">
-              <Chat /> 
-            </div>
-          ) : (
-            <NewRequest /> 
-          )}
-        </div>
+    <div className="flex w-full">
+      <div className="m-1 h-full">
+        <History />
+      </div>
+      <div className="flex items-center justify-center w-[70vw] h-[70vh]">
+        {id ? <Chat /> : <NewRequest /> }
       </div>
     </div>
   );

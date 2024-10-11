@@ -1,4 +1,9 @@
-export default function Chat() {
+import { useParams } from "react-router-dom";
+
+export function Chat() {
+  const {id} = useParams();
+  console.log(id);
+
   const messages = [
     {
       id: 1,
@@ -69,7 +74,7 @@ export default function Chat() {
   ];
 
   return (
-    <div className="flex flex-col w-full pr-2">
+    <div className="flex flex-col w-full pr-2 mt-14">
       {/* Chat Window */}
       <div className="flex-grow h-[70vh] p-4 border rounded-lg bg-gray-100 space-y-4 overflow-y-scroll">
         {messages.map((message) => (

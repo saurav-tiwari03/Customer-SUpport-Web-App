@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Modal({ title, content, onClose }) {
   return (
@@ -23,21 +23,28 @@ function Modal({ title, content, onClose }) {
 export default function RequestTab() {
   const [isOpen, setIsOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", content: "" });
+  const [status, setStatus] = useState(false);
 
   const assignedRequests = [
-    { id: 1, description: "Issue with login credentials." },
-    { id: 2, description: "Unable to reset password." },
+    { id: 132, description: "Issue with login credentials." },
+    { id: 232, description: "Unable to reset password." },
   ];
 
   const pendingRequests = [
-    { id: 1, description: "Payment gateway not working." },
-    { id: 2, description: "Cannot update profile picture." },
+    { id: 122, description: "Payment gateway not working." },
+    { id: 2534, description: "Cannot update profile picture." },
   ];
 
   const resolvedRequests = [
-    { id: 1, description: "Fixed error in email notification system." },
-    { id: 2, description: "Resolved 404 error on dashboard page." },
+    { id: 1422, description: "Fixed error in email notification system." },
+    { id: 287, description: "Resolved 404 error on dashboard page." },
   ];
+  const navigate = useNavigate();
+
+  const redirectHandler = (id) => {
+    navigate(`/agent/chat/${id}`);
+    handleCloseModal();
+  };
 
   const handleOpenModal = (type) => {
     switch (type) {
@@ -47,12 +54,18 @@ export default function RequestTab() {
           content: (
             <ul>
               {assignedRequests.map((request) => (
-                <div key={request.id} className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1">
-                <li>{request.description}</li>
-                <Link to="/chat/:id" className="text-blue-500 font-semibold">
-                  View Chat
-                </Link>
-              </div>
+                <div
+                  key={request.id}
+                  className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
+                >
+                  <li>{request.description}</li>
+                  <Button
+                    onClick={() => redirectHandler(request.id)}
+                    className="text-blue-500 font-semibold"
+                  >
+                    View Chat
+                  </Button>
+                </div>
               ))}
             </ul>
           ),
@@ -64,11 +77,18 @@ export default function RequestTab() {
           content: (
             <ul>
               {pendingRequests.map((request) => (
-                <div key={request.id} className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1">
+                <div
+                  key={request.id}
+                  className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
+                >
                   <li>{request.description}</li>
-                  <Link to="/agent/chat/:id" className="text-blue-500 font-semibold">
+                  <Button
+                    onClick={() => redirectHandler(request.id)}
+                    to="/agent/chat/:id"
+                    className="text-blue-500 font-semibold"
+                  >
                     View Chat
-                  </Link>
+                  </Button>
                 </div>
               ))}
             </ul>
@@ -86,9 +106,13 @@ export default function RequestTab() {
                   className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
                 >
                   <li>{request.description}</li>
-                  <Link to="/chat/:id" className="text-blue-500 font-semibold">
+                  <Button
+                    onClick={() => redirectHandler(request.id)}
+                    to="/chat/:id"
+                    className="text-blue-500 font-semibold"
+                  >
                     View Chat
-                  </Link>
+                  </Button>
                 </div>
               ))}
             </ul>
@@ -107,15 +131,37 @@ export default function RequestTab() {
 
   return (
     <div className="flex gap-4 ">
-      <Button onClick={() => handleOpenModal("assigned")} className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]">
+      <Button
+        onClick={() => handleOpenModal("assigned")}
+        className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]"
+      >
         Assigned Request
       </Button>
-      <Button onClick={() => handleOpenModal("pending")} className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]">
+      <Button
+        onClick={() => handleOpenModal("pending")}
+        className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]"
+      >
         Pending Request
       </Button>
-      <Button onClick={() => handleOpenModal("resolved")} className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]">
+      <Button
+        onClick={() => handleOpenModal("resolved")}
+        className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]"
+      >
         Resolved Request
       </Button>
+      <div className="flex items-center gap-2">
+        <span className="">Status : </span>
+        <Button
+          onClick={() => setStatus(!status)}
+          className={` rounded  text-lg  ${
+            status
+              ? "bg-green-500 hover:bg-green-500"
+              : "bg-red-500 hover:bg-red-500"
+          }`}
+        >
+          {status ? "Active" : "Inactive"}
+        </Button>
+      </div>
 
       {isOpen && (
         <Modal

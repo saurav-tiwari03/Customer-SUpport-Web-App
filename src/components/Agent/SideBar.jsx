@@ -20,7 +20,7 @@ export default function SideBar() {
   );
 
   return (
-    <div className="w-[25%] p-4 bg-gray-100 h-[85vh] border-r-2 border-gray-300">
+    <div className="w-[40%] p-4 bg-gray-100 h-[85vh] border-r-2 border-gray-300">
       {/* Toggle buttons */}
       <div className="flex justify-between mb-4">
         <Button

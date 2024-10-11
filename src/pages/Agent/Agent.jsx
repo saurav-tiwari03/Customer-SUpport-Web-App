@@ -3,9 +3,21 @@ import CustomerInfo from "@/components/Agent/CustomerInfo";
 import Notify from "@/components/Agent/Notify";
 import RequestTab from "@/components/Agent/RequestTab";
 import SideBar from "@/components/Agent/SideBar";
-
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const { id } = useParams(); // Fetching chat ID from URL params
+  const userData = JSON.parse(localStorage.getItem('UserData'));
+
+  useEffect(() => {
+    // Check if user is logged in and has the correct role
+    if (!userData || userData.role !== 'agent') {
+      navigate('/auth/agent/login');
+    }
+  }, [navigate, userData, userData.role]);
+
   return (
     <div>
       <div>
@@ -23,7 +35,12 @@ export default function Home() {
               <Notify />
             </div>
           </div>
-          <Chat />
+          {/* Only render Chat if an ID is present in the URL */}
+          {id ? (
+            <Chat chatId={id} /> // Pass the chat ID as a prop if needed
+          ) : (
+            <div className="text-center my-4">Select a chat to start messaging.</div>
+          )}
         </div>
       </div>
     </div>

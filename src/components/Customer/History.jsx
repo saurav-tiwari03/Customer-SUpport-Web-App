@@ -1,8 +1,6 @@
-/* eslint-disable react/prop-types */
 import { Link } from "react-router-dom";
 
-export default function History({ show }) {
-  console.log(show);
+export default function History() {
   // Dummy chat history data
   const chatHistory = [
     { id: 1, text: "Chat with John Doe", time: "10:00 AM" },
