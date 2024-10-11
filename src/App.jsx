@@ -7,7 +7,6 @@ import Agent from './pages/Agent/Agent';
 import Customer from "./pages/Customer/Customer";
 import { Button } from "./components/ui/button";
 import { useState } from "react";
-
 export default function App() {
   const [user, setUser] = useState(true);
 
