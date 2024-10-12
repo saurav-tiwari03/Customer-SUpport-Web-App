@@ -11,4 +11,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      '/customer-support': {
+        target: 'http://localhost:3000', // The backend server
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

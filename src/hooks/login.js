@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import axios from "axios";
+import axios from "axios";
 
 export default function useLoginHook() {
   const [loading, setLoading] = useState(false);
@@ -8,19 +8,34 @@ export default function useLoginHook() {
   const [data, setData] = useState(null);
   const navigate = useNavigate();
 
-  const login = async ({ role, email, id }) => {
+  const login = async ({ role, username }) => {
+    console.log(`login ${role} ${username}`);
+
     setLoading(true);
-    setError(null); 
+    setError(null);
 
     try {
-      // const response = await axios.post("/api/login", { role, email, id });
-      // setData(response.data); // Store the response data
-      // console.log('Login successful:', response.data);
-      console.log('useLogin hook Data ==> ',{role,email,id});
-      localStorage.setItem('UserData', JSON.stringify({role,email,id}));
-      setData('Login successful:');
-      navigate(`/${role}`)
-
+      let response
+      if(role === "agent") {
+        response = await axios.post(`http://localhost:3000/customer-support/${role}/login`, { agentId:username });
+      }
+      else {
+        response = await axios.post(`http://localhost:3000/customer-support/${role}/login`, { username });
+      }
+      
+      const userData = {
+        ...response.data.data, 
+        role, 
+      };
+      console.log('Login successful:', userData);
+      localStorage.setItem('UserData', JSON.stringify(userData));
+      
+      setData({
+        message: 'Login successful',
+        user: userData,
+      });
+      
+      navigate(`/${role}`);
     } catch (error) {
       setError(error.response ? error.response.data : 'An error occurred');
       console.error('Login error:', error);

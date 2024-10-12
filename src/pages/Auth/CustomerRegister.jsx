@@ -8,10 +8,11 @@ export default function CustomerRegister() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [username,setUsername] =  useState("");
 
   const submitHandler = (e) => {
     e.preventDefault();
-    console.log({ firstName, lastName, email });
+    console.log({firstName,lastName,email,username});
   };
   return (
     <div className="flex flex-col items-center justify-center pt-4">
@@ -47,7 +48,6 @@ export default function CustomerRegister() {
               name="lastName"
               className="w-[300px]"
               placeholder="Enter last name"
-              required
               onChange={(e) => setLastName(e.target.value)}
             />
           </div>
@@ -62,6 +62,7 @@ export default function CustomerRegister() {
               name="email"
               className="w-[300px]"
               placeholder="Enter email"
+              required
               onChange={e => setEmail(e.target.value)}
             />
           </div>
@@ -69,13 +70,15 @@ export default function CustomerRegister() {
           {/* Customer ID Field */}
           <div className="flex items-center justify-between">
             <Label className="text-xl w-[120px]" htmlFor="customerId">
-              Customer ID
+              UserName
             </Label>
             <Input
               type="text"
               name="customerId"
               className="w-[300px]"
-              placeholder="Enter customer ID"
+              placeholder="Enter username"
+              onChange={e => setUsername(e.target.value)}
+              required
             />
           </div>
           <hr />

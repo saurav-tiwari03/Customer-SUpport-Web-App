@@ -6,14 +6,13 @@ import useLoginHook from "@/hooks/login";
 import { useState } from "react";
 
 
-export default function AgentLogin() {
-  const [email,setEmail] = useState('');
+export  function AgentLogin() {
   const [agentId,setAgentId] = useState('');
   const {login,error,data} = useLoginHook();
 
   const submitHandler = (e) => {
     e.preventDefault();
-    login({role:"agent",email,id:agentId})
+    login({role:"agent",username:agentId})
     if(data) {
       console.log(data);
     } 
@@ -29,12 +28,6 @@ export default function AgentLogin() {
       </div>
       <div className="border-2 border-black p-4 w-[500px] rounded">
         <form className="flex flex-col w-full space-y-4" onSubmit={submitHandler}>
-          {/* Email Field */}
-          <div className="flex items-center justify-between">
-            <Label className="text-xl w-[120px]" htmlFor="email">Email</Label>
-            <Input type="email" name="email" className="w-[300px]" placeholder="Enter email" onChange={e => setEmail(e.target.value)}/>
-          </div>
-
           {/* Customer ID Field */}
           <div className="flex items-center justify-between">
             <Label className="text-xl w-[120px]" htmlFor="customerId">Agent ID</Label>

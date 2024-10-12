@@ -6,10 +6,9 @@ import { useEffect, useState } from "react";
 
 export function Customer() {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
   const {id} = useParams();
-  console.log('Id ==> '+id)
-
+  
+  const [userData, setUserData] = useState(null);
   useEffect(() => {
     const storedUserDataString = localStorage.getItem('UserData');  
     const storedUserData = JSON.parse(storedUserDataString);
@@ -18,7 +17,7 @@ export function Customer() {
     if (!storedUserData || storedUserData.role !== 'customer') {
       navigate('/auth/customer/login');
     }
-  }, []);
+  }, [navigate]);
 
   if (!userData) {
     return null; 

@@ -1,13 +1,21 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useGetTickets } from "@/hooks/getTickets";
 
-function Modal({ title, content, onClose }) {
+function Modal({ title, content, onClose, onSearch }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-[500px]">
+      <div className="bg-white rounded-lg p-6 w-[500px] max-h-[80vh] overflow-y-auto">
         <h2 className="text-xl mb-4">{title}</h2>
+        {/* Search bar */}
+        <input
+          type="text"
+          placeholder="Search requests"
+          className="mb-4 p-2 border border-gray-300 rounded w-full"
+          onChange={onSearch}
+        />
         <div className="mb-6">{content}</div>
         <Button
           onClick={onClose}
@@ -23,110 +31,70 @@ function Modal({ title, content, onClose }) {
 export default function RequestTab() {
   const [isOpen, setIsOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", content: "" });
-  const [status, setStatus] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const assignedRequests = [
-    { id: 132, description: "Issue with login credentials." },
-    { id: 232, description: "Unable to reset password." },
-  ];
+  const [status, setStatus] = useState("resolved");
 
-  const pendingRequests = [
-    { id: 122, description: "Payment gateway not working." },
-    { id: 2534, description: "Cannot update profile picture." },
-  ];
-
-  const resolvedRequests = [
-    { id: 1422, description: "Fixed error in email notification system." },
-    { id: 287, description: "Resolved 404 error on dashboard page." },
-  ];
+  const { getTickets, data, loading } = useGetTickets();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    getTickets({ status });
+  }, [getTickets, status]);
+
   const redirectHandler = (id) => {
-    navigate(`/agent/chat/${id}`);
+    navigate(`/agent/ticket/${id}`);
     handleCloseModal();
   };
 
+  const handleSearch = (requests) => {
+    return requests.filter((request) =>
+      request.issueTitle.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
   const handleOpenModal = (type) => {
-    switch (type) {
-      case "assigned":
-        setModalContent({
-          title: "Assigned Requests",
-          content: (
-            <ul>
-              {assignedRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
-                >
-                  <li>{request.description}</li>
-                  <Button
-                    onClick={() => redirectHandler(request.id)}
-                    className="text-blue-500 font-semibold"
-                  >
-                    View Chat
-                  </Button>
-                </div>
-              ))}
-            </ul>
-          ),
-        });
-        break;
-      case "pending":
-        setModalContent({
-          title: "Pending Requests",
-          content: (
-            <ul>
-              {pendingRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
-                >
-                  <li>{request.description}</li>
-                  <Button
-                    onClick={() => redirectHandler(request.id)}
-                    to="/agent/chat/:id"
-                    className="text-blue-500 font-semibold"
-                  >
-                    View Chat
-                  </Button>
-                </div>
-              ))}
-            </ul>
-          ),
-        });
-        break;
-      case "resolved":
-        setModalContent({
-          title: "Resolved Requests",
-          content: (
-            <ul>
-              {resolvedRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
-                >
-                  <li>{request.description}</li>
-                  <Button
-                    onClick={() => redirectHandler(request.id)}
-                    to="/chat/:id"
-                    className="text-blue-500 font-semibold"
-                  >
-                    View Chat
-                  </Button>
-                </div>
-              ))}
-            </ul>
-          ),
-        });
-        break;
-      default:
-        break;
-    }
+    setStatus(type);
+
+    setModalContent({
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} Requests`,
+      content: loading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul>
+          {handleSearch(data).map((request) => (
+            <div
+              key={request._id}
+              className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
+            >
+              <li>
+                <strong>Title:</strong> {request.issueTitle} <br />
+                <strong>Username:</strong> {request.username} <br />
+                <strong>Status:</strong> {request.status}
+              </li>
+              <Button
+                onClick={() => redirectHandler(request._id)}
+                className="text-blue-500 font-semibold"
+              >
+                View Chat
+              </Button>
+            </div>
+          ))}
+        </ul>
+      ),
+    });
     setIsOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsOpen(false);
+    setSearchQuery(""); 
+  };
+  const {id} = useParams();
+
+  const updateStatusRequest = (data) => {
+    if (data === "") return;
+    console.log("Selected Status:", data,id);
   };
 
   return (
@@ -150,17 +118,18 @@ export default function RequestTab() {
         Resolved Request
       </Button>
       <div className="flex items-center gap-2">
-        <span className="">Status : </span>
-        <Button
-          onClick={() => setStatus(!status)}
-          className={` rounded  text-lg  ${
-            status
-              ? "bg-green-500 hover:bg-green-500"
-              : "bg-red-500 hover:bg-red-500"
-          }`}
+        <span>Status :</span>
+        <select
+          name="status"
+          id="status"
+          onChange={(e) => updateStatusRequest(e.target.value)}
+          value={status}
         >
-          {status ? "Active" : "Inactive"}
-        </Button>
+          <option value="">Select Status</option>
+          <option value="assigned">Assigned</option>
+          <option value="unassigned">Unassigned</option>
+          <option value="resolved">Resolved</option>
+        </select>
       </div>
 
       {isOpen && (
@@ -168,6 +137,7 @@ export default function RequestTab() {
           title={modalContent.title}
           content={modalContent.content}
           onClose={handleCloseModal}
+          onSearch={(e) => setSearchQuery(e.target.value)}
         />
       )}
     </div>
