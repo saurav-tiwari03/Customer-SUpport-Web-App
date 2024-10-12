@@ -31,19 +31,16 @@ export default function useRegisterHook() {
           username,
         });
       }
-
       const registeredData = {
         ...response.data.data,
         role,
       };
       console.log('Registration successful:', registeredData);
       localStorage.setItem('UserData', JSON.stringify(registeredData));
-
       setData({
         message: 'Registration successful',
         user: registeredData,
       });
-
       navigate(`/${role}`);
     } catch (error) {
       setError(error.response ? error.response.data : 'An error occurred');

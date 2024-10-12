@@ -10,7 +10,7 @@ export default function useRaiseTicket() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`http://localhost:3000/customer-support/ticket`,{ issueTitle, username });
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/customer-support/ticket`,{ issueTitle, username });
       console.log(response.data.data.ticket);
       setData(response.data.data.ticket);
     } catch (error) {

@@ -1,88 +1,60 @@
-import { useState } from "react";
-import { Button } from "../ui/button";
+import { usePastTickets } from "@/hooks/pastTickets";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-export default function SideBar() {
-  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+export default function AgentHistory() {
+  const { pastTickets, data: chatHistory = [], error } = usePastTickets();
+  const [userData, setUserData] = useState(null);
 
-  // Dummy chat history data
-  const chatHistory = [
-    "Chat with John Doe - 10:00 AM",
-    "Chat with Jane Smith - 11:15 AM",
-    "Chat with Mark - 2:30 PM",
-    "Chat with Lisa - 3:45 PM",
-    "Chat with Steve - 4:00 PM",
-  ];
+  // Load user data from localStorage on mount
+  useEffect(() => {
+    const storedUserDataString = localStorage.getItem('UserData');
+    if (storedUserDataString) {
+      const storedUserData = JSON.parse(storedUserDataString);
+      if (storedUserData && storedUserData.agent) {
+        setUserData(storedUserData);
+      }
+    }
+  }, []); // Runs only once on mount
 
-  // Filtered results based on search term
-  const filteredResults = chatHistory.filter((chat) =>
-    chat.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fetch tickets when userData is available
+  useEffect(() => {
+    if (userData && userData.agent) {
+      pastTickets({
+        agentId: userData.agent.agentId, 
+        username: null,
+        status: null,
+        searchText: null, 
+      });
+    }
+  }, [userData, pastTickets]); // Runs when userData changes
 
   return (
-    <div className="w-[40%] p-4 bg-gray-100 h-[85vh] border-r-2 border-gray-300">
-      {/* Toggle buttons */}
-      <div className="flex justify-between mb-4">
-        <Button
-          className={`${
-            isHistoryVisible
-              ? "bg-blue-500 text-white"
-              : "bg-white text-blue-500"
-          } border border-blue-500 rounded-lg py-2 px-4 w-full mr-2`}
-          onClick={() => setIsHistoryVisible(true)}
-        >
-          Chat History
-        </Button>
-
-        <Button
-          className={`${
-            !isHistoryVisible
-              ? "bg-blue-500 text-white"
-              : "bg-white text-blue-500"
-          } border border-blue-500 rounded-lg py-2 px-4 w-full`}
-          onClick={() => setIsHistoryVisible(false)}
-        >
-          Search
-        </Button>
+    <div className="p-4 bg-white rounded-lg shadow-md h-[80vh] w-[30vw] overflow-y-scroll">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold mb-4">Agent Chat History</h2>
+        <Link to="/agent">New Chat</Link>
       </div>
 
-      {/* Content Section */}
-      <div className="bg-white rounded-lg p-4 shadow-md">
-        {isHistoryVisible ? (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Chat History</h3>
-            <ul className="space-y-2">
-              {chatHistory.map((chat, index) => (
-                <li key={index} className="border-b pb-2">
-                  {chat}
-                </li>
-              ))}
-            </ul>
-          </div>
+      {error && <div className="text-red-500">Error loading chat history: {error.message}</div>}
+
+      <ul className="space-y-2">
+        {chatHistory.length > 0 ? (
+          chatHistory.map((chat) => {
+            console.log(chat)
+            return (
+              <li key={chat.id} className="flex justify-between border-b pb-2">
+                <span>{chat.issueTitle || chat.text}</span>
+                <Link to={`/agent/ticket/${chat._id}`} className="text-gray-500">
+                  View Chat
+                </Link>
+              </li>
+            );
+          })
         ) : (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Search</h3>
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-2 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <ul className="space-y-2">
-              {filteredResults.length > 0 ? (
-                filteredResults.map((result, index) => (
-                  <li key={index} className="border-b pb-2">
-                    {result}
-                  </li>
-                ))
-              ) : (
-                <li className="text-gray-500">No results found</li>
-              )}
-            </ul>
-          </div>
+          <li className="text-gray-500">No chat history found.</li>
         )}
-      </div>
+      </ul>
     </div>
   );
 }

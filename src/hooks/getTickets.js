@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 // Hook for fetching assigned tickets
 export const useGetAssignedTickets = () => {
@@ -7,11 +7,11 @@ export const useGetAssignedTickets = () => {
   const [error, setError] = useState(null);
   const [data, setData] = useState([]);
 
-  const getAssignedTickets = async ({ username, agentId, searchText }) => {
+  const getAssignedTickets =useCallback( async ({ username, agentId, searchText }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`http://localhost:3000/customer-support/ticket`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/customer-support/ticket`, {
         params: {
           username,
           agentId,
@@ -26,7 +26,7 @@ export const useGetAssignedTickets = () => {
     } finally {
       setLoading(false);
     }
-  };
+  },[]);
 
   return { getAssignedTickets, loading, error, data };
 };
@@ -41,7 +41,7 @@ export const useGetUnassignedTickets = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`http://localhost:3000/customer-support/ticket`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/customer-support/ticket`, {
         params: {
           username,
           agentId,
@@ -71,7 +71,7 @@ export const useGetResolvedTickets = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`http://localhost:3000/customer-support/ticket`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/customer-support/ticket`, {
         params: {
           username,
           agentId,

@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetResolvedTickets,useGetAssignedTickets,useGetUnassignedTickets } from "./../../hooks/getTickets";
+import { useGetResolvedTickets, useGetAssignedTickets, useGetUnassignedTickets } from "./../../hooks/getTickets";
 import { useUpdateTicket } from "@/hooks/updateTicket";
 
 function Modal({ title, data, onClose }) {
   const navigate = useNavigate();
-  console.log('Data ==> '+data)
+  console.log('Data ==> ' + data)
 
   const redirectHandler = (request) => {
-    console.log('Ticket ==> ',request)
-    localStorage.setItem('ticketData',JSON.stringify(request))
+    console.log('Ticket ==> ', request)
+    localStorage.setItem('ticketData', JSON.stringify(request))
     navigate(`/agent/ticket/${request._id}`);
     onClose(); // Close modal when redirecting
   };
@@ -59,57 +59,76 @@ function Modal({ title, data, onClose }) {
   );
 }
 
-export default function RequestTab({userData}) {
+export default function RequestTab({ userData }) {
   const [isOpen, setIsOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", data: [] });
   const [currentStatus, setCurrentStatus] = useState("");
 
+  // Load ticket data from local storage once when component mounts
+  useEffect(() => {
+    const storedTicketData = localStorage.getItem("ticketData");
+    if (storedTicketData) {
+      const ticketData = JSON.parse(storedTicketData);
+      setCurrentStatus(ticketData.status || "");
+    }
+  }, []); // Only run this once when the component mounts
+
   const { getAssignedTickets, loading: loadingAssigned, data: assignedTickets } = useGetAssignedTickets();
   const { getUnassignedTickets, loading: loadingUnassigned, data: unassignedTickets } = useGetUnassignedTickets();
   const { getResolvedTickets, loading: loadingResolved, data: resolvedTickets } = useGetResolvedTickets();
-  const {updateTicket} = useUpdateTicket()
+  const { updateTicket } = useUpdateTicket();
 
   const handleOpenModal = async (type) => {
     setCurrentStatus(type);
-    let ticketsData = [];
+    setIsOpen(true);
 
     if (type === "assigned") {
       await getAssignedTickets({});
-      ticketsData = assignedTickets;
     } else if (type === "unassigned") {
       await getUnassignedTickets({});
-      ticketsData = unassignedTickets;
     } else if (type === "resolved") {
       await getResolvedTickets({});
+    }
+  };
+
+  useEffect(() => {
+    let ticketsData = [];
+
+    if (currentStatus === "assigned") {
+      ticketsData = assignedTickets;
+    } else if (currentStatus === "unassigned") {
+      ticketsData = unassignedTickets;
+    } else if (currentStatus === "resolved") {
       ticketsData = resolvedTickets;
     }
 
     setModalContent({
-      title: `${type.charAt(0).toUpperCase() + type.slice(1)} Requests`,
+      title: `${currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)} Requests`,
       data: ticketsData,
     });
-
-    setIsOpen(true);
-  };
+  }, [assignedTickets, unassignedTickets, resolvedTickets, currentStatus]);
 
   const handleCloseModal = () => {
     setIsOpen(false);
   };
+
   const { id } = useParams();
+
   const updateStatusRequest = (status) => {
     if (!status) return;
     updateTicket({ status, id, agentId: userData.agent.agentId });
-  };
-
-  useEffect(() => {
-    const storedStatus = localStorage.getItem('ticketData');
-    if (storedStatus) {
-      const parsedStatus = JSON.parse(storedStatus); 
-      console.log('Stored status:', parsedStatus); 
-      setCurrentStatus(parsedStatus.status); 
+    
+    // Update local storage when status changes
+    const storedTicketData = localStorage.getItem('ticketData');
+    if (storedTicketData) {
+      const ticketData = JSON.parse(storedTicketData);
+      ticketData.status = status; // Update status in local storage data
+      localStorage.setItem('ticketData', JSON.stringify(ticketData)); // Save back to local storage
     }
-  }, []);
-  
+
+    // Update the state to reflect the new status immediately
+    setCurrentStatus(status);
+  };
 
   return (
     <div className="flex gap-4">

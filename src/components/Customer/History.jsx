@@ -20,9 +20,9 @@ export default function History() {
     if (userData && userData.customer) {
       pastTickets({ 
         agentId: null, 
-        username: null, 
+        username: userData.customer.username, 
         status: null, 
-        searchText: userData.customer.username
+        searchText: null
       });
     }
   }, [userData, pastTickets]);

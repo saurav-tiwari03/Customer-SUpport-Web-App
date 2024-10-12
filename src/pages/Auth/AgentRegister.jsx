@@ -10,11 +10,12 @@ export default function AgentRegister() {
   const [firstName,setFirstName] = useState('')
   const [lastName,setLastName] = useState('')
   const [email,setEmail] = useState('')
+  const [agentId,setAgentId] = useState('')
 
   const submitHandler = (e) => {
     e.preventDefault();
     console.log({firstName,lastName,email})
-    register({role:"agent",firstName,lastName,email})
+    register({role:"agent",firstName,lastName,email,agentId})
   }
 
   return (
@@ -75,13 +76,14 @@ export default function AgentRegister() {
             {/* Customer ID Field */}
             <div className="flex items-center justify-between">
               <Label className="text-xl w-[120px]" htmlFor="customerId">
-                Customer ID
+                AgentId
               </Label>
               <Input
                 type="text"
                 name="customerId"
                 className="w-[300px]"
                 placeholder="Enter Agent ID"
+                onChange={e => setAgentId(e.target.value)}
               />
             </div>
             <hr />

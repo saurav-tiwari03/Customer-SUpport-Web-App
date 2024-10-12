@@ -17,10 +17,10 @@ export default function useLoginHook() {
     try {
       let response
       if(role === "agent") {
-        response = await axios.post(`http://localhost:3000/customer-support/${role}/login`, { agentId:username });
+        response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/customer-support/${role}/login`, { agentId:username });
       }
       else {
-        response = await axios.post(`http://localhost:3000/customer-support/${role}/login`, { username });
+        response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/customer-support/${role}/login`, { username });
       }
       
       const userData = {
