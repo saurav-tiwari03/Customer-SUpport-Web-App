@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useRegisterHook from "@/hooks/register";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 export default function AgentRegister() {
+  const {register} = useRegisterHook();
 
   const [firstName,setFirstName] = useState('')
   const [lastName,setLastName] = useState('')
@@ -12,6 +14,7 @@ export default function AgentRegister() {
   const submitHandler = (e) => {
     e.preventDefault();
     console.log({firstName,lastName,email})
+    register({role:"agent",firstName,lastName,email})
   }
 
   return (

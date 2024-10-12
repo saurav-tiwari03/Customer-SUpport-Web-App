@@ -1,26 +1,56 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetTickets } from "@/hooks/getTickets";
+import { useGetResolvedTickets,useGetAssignedTickets,useGetUnassignedTickets } from "./../../hooks/getTickets";
 import { useUpdateTicket } from "@/hooks/updateTicket";
 
-function Modal({ title, content, onClose, onSearch }) {
+function Modal({ title, data, onClose }) {
+  const navigate = useNavigate();
+  console.log('Data ==> '+data)
+
+  const redirectHandler = (request) => {
+    console.log('Ticket ==> ',request)
+    localStorage.setItem('ticketData',JSON.stringify(request))
+    navigate(`/agent/ticket/${request._id}`);
+    onClose(); // Close modal when redirecting
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-[500px] max-h-[80vh] overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-[500px] max-h-[80vh] overflow-y-auto relative">
         <h2 className="text-xl mb-4">{title}</h2>
-        {/* Search bar */}
-        <input
-          type="text"
-          placeholder="Search requests"
-          className="mb-4 p-2 border border-gray-300 rounded w-full"
-          onChange={onSearch}
-        />
-        <div className="mb-6">{content}</div>
+        <div className="mb-6">
+          {data.length > 0 ? (
+            <ul>
+              {data.map((request) => (
+                <div
+                  key={request._id}
+                  className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
+                >
+                  <li>
+                    <strong>Title:</strong> {request.issueTitle} <br />
+                    <strong>Username:</strong> {request.username} <br />
+                    <strong>Status:</strong> {request.status} <br />
+                    <strong>ID:</strong> {request._id}
+                  </li>
+                  <Button
+                    onClick={() => redirectHandler(request)}
+                    className="text-blue-500 font-semibold"
+                  >
+                    View Chat
+                  </Button>
+                </div>
+              ))}
+            </ul>
+          ) : (
+            <p>No requests available for this status.</p>
+          )}
+        </div>
         <Button
           onClick={onClose}
-          className="bg-red-500 text-white rounded hover:bg-red-500"
+          className="bg-red-500 text-white rounded hover:bg-red-500 absolute top-2 right-2"
         >
           Close
         </Button>
@@ -29,85 +59,60 @@ function Modal({ title, content, onClose, onSearch }) {
   );
 }
 
-export default function RequestTab() {
+export default function RequestTab({userData}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [modalContent, setModalContent] = useState({ title: "", content: "" });
-  const [searchQuery, setSearchQuery] = useState("");
+  const [modalContent, setModalContent] = useState({ title: "", data: [] });
   const [currentStatus, setCurrentStatus] = useState("");
-  const [userData, setUserData] = useState(null);
-  const navigate = useNavigate();
 
-  const { getTickets, data, loading } = useGetTickets();
+  const { getAssignedTickets, loading: loadingAssigned, data: assignedTickets } = useGetAssignedTickets();
+  const { getUnassignedTickets, loading: loadingUnassigned, data: unassignedTickets } = useGetUnassignedTickets();
+  const { getResolvedTickets, loading: loadingResolved, data: resolvedTickets } = useGetResolvedTickets();
   const {updateTicket} = useUpdateTicket()
 
-  useEffect(() => {
-    const storedUserData = JSON.parse(localStorage.getItem("UserData"));
-
-    if (storedUserData && storedUserData.role) {
-      setUserData(storedUserData);
-    }
-  }, [navigate]);
-
-  const redirectHandler = (id) => {
-    navigate(`/agent/ticket/${id}`);
-    handleCloseModal();
-  };
-
-  const handleSearch = (requests) => {
-    return requests.filter((request) =>
-      request.issueTitle.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  };
-
   const handleOpenModal = async (type) => {
-    console.log('Opening modal for status:', type);
     setCurrentStatus(type);
-    
+    let ticketsData = [];
+
+    if (type === "assigned") {
+      await getAssignedTickets({});
+      ticketsData = assignedTickets;
+    } else if (type === "unassigned") {
+      await getUnassignedTickets({});
+      ticketsData = unassignedTickets;
+    } else if (type === "resolved") {
+      await getResolvedTickets({});
+      ticketsData = resolvedTickets;
+    }
+
     setModalContent({
       title: `${type.charAt(0).toUpperCase() + type.slice(1)} Requests`,
-      content: <p>Loading...</p>,
+      data: ticketsData,
     });
+
     setIsOpen(true);
-    await getTickets({ status: type });
-    setModalContent({
-      title: `${type.charAt(0).toUpperCase() + type.slice(1)} Requests`,
-      content: loading ? (
-        <p>Loading...</p>
-      ) : (
-        <ul>
-          {handleSearch(data).map((request) => (
-            <div key={request._id} className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1">
-              <li>
-                <strong>Title:</strong> {request.issueTitle} <br />
-                <strong>Username:</strong> {request.username} <br />
-                <strong>Status:</strong> {request.status}
-              </li>
-              <Button onClick={() => redirectHandler(request._id)} className="text-blue-500 font-semibold">
-                View Chat
-              </Button>
-            </div>
-          ))}
-        </ul>
-      ),
-    });
   };
 
   const handleCloseModal = () => {
     setIsOpen(false);
-    setSearchQuery(""); 
   };
-
   const { id } = useParams();
-  const updateStatusRequest = (data) => {
-    if (data === "") return;
-    updateTicket({status:data,id,agentId:userData.agent.agentId})
+  const updateStatusRequest = (status) => {
+    if (!status) return;
+    updateTicket({ status, id, agentId: userData.agent.agentId });
   };
 
-
-
+  useEffect(() => {
+    const storedStatus = localStorage.getItem('ticketData');
+    if (storedStatus) {
+      const parsedStatus = JSON.parse(storedStatus); 
+      console.log('Stored status:', parsedStatus); 
+      setCurrentStatus(parsedStatus.status); 
+    }
+  }, []);
+  
 
   return (
-    <div className="flex gap-4 ">
+    <div className="flex gap-4">
       <Button
         onClick={() => handleOpenModal("assigned")}
         className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]"
@@ -118,7 +123,7 @@ export default function RequestTab() {
         onClick={() => handleOpenModal("unassigned")}
         className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]"
       >
-        Pending Request
+        Unassigned Request
       </Button>
       <Button
         onClick={() => handleOpenModal("resolved")}
@@ -144,9 +149,8 @@ export default function RequestTab() {
       {isOpen && (
         <Modal
           title={modalContent.title}
-          content={modalContent.content}
+          data={modalContent.data}
           onClose={handleCloseModal}
-          onSearch={(e) => setSearchQuery(e.target.value)}
         />
       )}
     </div>

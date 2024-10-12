@@ -66,7 +66,7 @@ export default function App() {
           <Route path="/agent" element={<Agent />} />
           <Route path="/agent/ticket/:id" element={<Agent />} />
           <Route path="/customer" element={<Customer />} />
-          <Route path="/customer/chat/:id" element={<Customer />} />
+          <Route path="/customer/ticket/:id" element={<Customer />} />
         </Routes>
       </div>
     </div>

@@ -29,14 +29,14 @@ export default function Home() {
         <SideBar />
         <div className="flex flex-col w-full">
           <div className="flex justify-between">
-            <RequestTab />
+            <RequestTab userData={userData}/>
             <div className="flex items-center gap-2">
               <CustomerInfo />
               <Notify />
             </div>
           </div>
           {id ? (
-            <Chat chatId={id} /> 
+            <Chat userData={userData} /> 
           ) : (
             <div className="text-center my-4">Select a chat to start messaging.</div>
           )}

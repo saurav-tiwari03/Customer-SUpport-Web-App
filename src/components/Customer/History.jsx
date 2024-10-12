@@ -33,15 +33,13 @@ export default function History() {
         <h2 className="text-lg font-semibold mb-4">Chat History</h2>
         <Link to="/customer">New Chat</Link>
       </div>
-      
       {error && <div className="text-red-500">Error loading chat history: {error.message}</div>}
-
       <ul className="space-y-2 ">
         {chatHistory.length > 0 ? (
           chatHistory.map((chat) => (
             <li key={chat.id} className="flex justify-between border-b pb-2">
               <span>{chat.issueTitle || chat.text}</span>
-              <Link to={`/customer/chat/${chat.id}`} className="text-gray-500">
+              <Link to={`/customer/ticket/${chat.id}`} className="text-gray-500">
                 View Chat
               </Link>
             </li>

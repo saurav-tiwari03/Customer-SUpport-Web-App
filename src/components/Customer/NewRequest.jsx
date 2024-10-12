@@ -58,7 +58,7 @@ export function NewRequest() {
   useEffect(() => {
     if (data && data._id) {
       console.log("Navigating to chat:", data._id);
-      navigate(`/customer/chat/${data._id}`);
+      navigate(`/customer/ticket/${data._id}`);
     }
   }, [data, navigate]); // Add `navigate` as a dependency to avoid linting issues
 

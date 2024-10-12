@@ -29,7 +29,7 @@ export function Customer() {
         <History />
       </div>
       <div className="flex items-center justify-center w-[70vw] h-[70vh]">
-        {id ? <Chat /> : <NewRequest /> }
+        {id ? <Chat userData={userData}/> : <NewRequest /> }
       </div>
     </div>
   );

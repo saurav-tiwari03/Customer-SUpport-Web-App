@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useRegisterHook from "@/hooks/register";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -9,10 +10,12 @@ export default function CustomerRegister() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [username,setUsername] =  useState("");
+  const {register} = useRegisterHook();
 
   const submitHandler = (e) => {
     e.preventDefault();
     console.log({firstName,lastName,email,username});
+    register({role:"customer",firstName,lastName,email,username})
   };
   return (
     <div className="flex flex-col items-center justify-center pt-4">
