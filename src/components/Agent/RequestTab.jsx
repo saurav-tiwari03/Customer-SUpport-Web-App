@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetTickets } from "@/hooks/getTickets";
+import { useUpdateTicket } from "@/hooks/updateTicket";
 
 function Modal({ title, content, onClose, onSearch }) {
   return (
@@ -32,15 +33,20 @@ export default function RequestTab() {
   const [isOpen, setIsOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", content: "" });
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [status, setStatus] = useState("resolved");
-
-  const { getTickets, data, loading } = useGetTickets();
+  const [currentStatus, setCurrentStatus] = useState("");
+  const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
 
+  const { getTickets, data, loading } = useGetTickets();
+  const {updateTicket} = useUpdateTicket()
+
   useEffect(() => {
-    getTickets({ status });
-  }, [getTickets, status]);
+    const storedUserData = JSON.parse(localStorage.getItem("UserData"));
+
+    if (storedUserData && storedUserData.role) {
+      setUserData(storedUserData);
+    }
+  }, [navigate]);
 
   const redirectHandler = (id) => {
     navigate(`/agent/ticket/${id}`);
@@ -53,9 +59,16 @@ export default function RequestTab() {
     );
   };
 
-  const handleOpenModal = (type) => {
-    setStatus(type);
-
+  const handleOpenModal = async (type) => {
+    console.log('Opening modal for status:', type);
+    setCurrentStatus(type);
+    
+    setModalContent({
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} Requests`,
+      content: <p>Loading...</p>,
+    });
+    setIsOpen(true);
+    await getTickets({ status: type });
     setModalContent({
       title: `${type.charAt(0).toUpperCase() + type.slice(1)} Requests`,
       content: loading ? (
@@ -63,19 +76,13 @@ export default function RequestTab() {
       ) : (
         <ul>
           {handleSearch(data).map((request) => (
-            <div
-              key={request._id}
-              className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1"
-            >
+            <div key={request._id} className="flex gap-2 justify-between w-full bg-[#d1d5db] px-2 py-1 rounded m-1">
               <li>
                 <strong>Title:</strong> {request.issueTitle} <br />
                 <strong>Username:</strong> {request.username} <br />
                 <strong>Status:</strong> {request.status}
               </li>
-              <Button
-                onClick={() => redirectHandler(request._id)}
-                className="text-blue-500 font-semibold"
-              >
+              <Button onClick={() => redirectHandler(request._id)} className="text-blue-500 font-semibold">
                 View Chat
               </Button>
             </div>
@@ -83,19 +90,21 @@ export default function RequestTab() {
         </ul>
       ),
     });
-    setIsOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsOpen(false);
     setSearchQuery(""); 
   };
-  const {id} = useParams();
 
+  const { id } = useParams();
   const updateStatusRequest = (data) => {
     if (data === "") return;
-    console.log("Selected Status:", data,id);
+    updateTicket({status:data,id,agentId:userData.agent.agentId})
   };
+
+
+
 
   return (
     <div className="flex gap-4 ">
@@ -106,7 +115,7 @@ export default function RequestTab() {
         Assigned Request
       </Button>
       <Button
-        onClick={() => handleOpenModal("pending")}
+        onClick={() => handleOpenModal("unassigned")}
         className="bg-[#3eabd6] rounded text-[#19355e] text-lg border-2 border-[#19355e]"
       >
         Pending Request
@@ -123,7 +132,7 @@ export default function RequestTab() {
           name="status"
           id="status"
           onChange={(e) => updateStatusRequest(e.target.value)}
-          value={status}
+          value={currentStatus}
         >
           <option value="">Select Status</option>
           <option value="assigned">Assigned</option>

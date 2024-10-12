@@ -35,9 +35,8 @@ export default function Home() {
               <Notify />
             </div>
           </div>
-          {/* Only render Chat if an ID is present in the URL */}
           {id ? (
-            <Chat chatId={id} /> // Pass the chat ID as a prop if needed
+            <Chat chatId={id} /> 
           ) : (
             <div className="text-center my-4">Select a chat to start messaging.</div>
           )}

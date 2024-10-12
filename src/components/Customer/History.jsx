@@ -8,14 +8,16 @@ export default function History() {
 
   useEffect(() => {
     const storedUserDataString = localStorage.getItem('UserData');
-    const storedUserData = JSON.parse(storedUserDataString);
-    if (storedUserData && storedUserData.customer) {
-      setUserData(storedUserData);
+    if (storedUserDataString) {
+      const storedUserData = JSON.parse(storedUserDataString);
+      if (storedUserData && storedUserData.customer) {
+        setUserData(storedUserData);
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (userData) {
+    if (userData && userData.customer) {
       pastTickets({ 
         agentId: null, 
         username: null, 
@@ -26,7 +28,7 @@ export default function History() {
   }, [userData, pastTickets]);
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md h-[80vh] w-[40vh]">
+    <div className="p-4 bg-white rounded-lg shadow-md h-[80vh] w-[40vh] overflow-y-scroll">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold mb-4">Chat History</h2>
         <Link to="/customer">New Chat</Link>
@@ -34,7 +36,7 @@ export default function History() {
       
       {error && <div className="text-red-500">Error loading chat history: {error.message}</div>}
 
-      <ul className="space-y-2">
+      <ul className="space-y-2 ">
         {chatHistory.length > 0 ? (
           chatHistory.map((chat) => (
             <li key={chat.id} className="flex justify-between border-b pb-2">
